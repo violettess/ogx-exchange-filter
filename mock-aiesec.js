@@ -24,7 +24,7 @@ const projects = Array.from({ length: 140 }, (_, i) => {
     title: ['Heartbeat', 'On the Map', 'Global Classroom', 'Coastal Cleanup', 'Digital Literacy', 'Wildlife Care', 'Refugee Support'][i % 7] + ` [${[4, 6, 8][i % 3]} weeks]`,
     location: 'Demo City, ' + countries[i % countries.length],
     description: 'Global Volunteers will be involved in community outreach by creating and running activities that raise awareness and build the capacity of the local community. This is demo text.',
-    applicants_count: Math.floor(rnd() * 12), cover_photo: process.env.MOCK_PROTECTED_IMAGES === '1' ? `http://127.0.0.1:4012/img/${i}.svg` : art(i),
+    applicants_count: Math.floor(rnd() * 12), cover_photo: process.env.MOCK_OBJECT_COVERS === '1' ? { url: art(i), width: 552, height: 312 } : process.env.MOCK_PROTECTED_IMAGES === '1' ? `http://127.0.0.1:4012/img/${i}.svg` : art(i),
     programme: { id: String(prog), short_name_display: prog === 7 ? 'Global Volunteer' : 'Global Talent' },
     branch: { company: { name: 'Partner Organisation ' + (i % 11) } },
     host_lc: { id: '1', address_detail: { country: countries[i % countries.length] } },

@@ -496,7 +496,7 @@ function techDetails(m) {
   const line = t => d.append(el('p', { text: t }));
   if (st.token) line('Token used: ' + st.token);
   line(`Projects: ${st.projects ?? '?'} · slots: ${st.slots ?? '?'} · slots came with the list: ${st.slotsFromList ? 'yes' : 'no (one request per project)'}`);
-  line(`Photos: ${st.noCover ?? '?'} of ${st.projects ?? '?'} projects have no photo.` + (st.coverSample ? ' Example photo URL: ' + st.coverSample : ''));
+  line(`Photos: ${st.noCover ?? '?'} of ${st.projects ?? '?'} projects have no photo.` + (st.coverSample ? ' Example photo URL: ' + st.coverSample : '') + (st.coverRaw ? ' (AIESEC sent it as: ' + st.coverRaw + ')' : ''));
   d.append(el('p', { id: 'imgfail', text: imgFailText() }));
   return d;
 }
@@ -676,6 +676,13 @@ function render() {
 }
 
 // Photo: try the CDN directly; if that fails, retry through our server (sends aiesec.org as referrer); else placeholder.
+function pickUrl(v) { // defensive: the server already extracts a URL, but never assume the shape
+  if (!v) return null;
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v)) { for (const x of v) { const u = pickUrl(x); if (u) return u; } return null; }
+  if (typeof v === 'object') { for (const x of Object.values(v)) { const u = pickUrl(x); if (u && /^(https?:)?\/\/|^data:|^\//.test(u)) return u; } }
+  return null;
+}
 const normUrl = u => u.startsWith('//') ? 'https:' + u : (location.protocol === 'https:' ? u.replace(/^http:\/\//, 'https://') : u);
 const imgFails = { n: 0, first: null };
 const imgFailText = () => imgFails.n ? `${imgFails.n} photo${imgFails.n === 1 ? '' : 's'} could not be loaded, even through the server. First one: ${imgFails.first}` : '';
@@ -696,7 +703,8 @@ function photoImg(src, box) {
 
 function card(p) {
   const photo = el('div', { class: 'photo' });
-  if (p.cover) photo.append(photoImg(p.cover, photo)); else photo.classList.add('noimg');
+  const cover = pickUrl(p.cover);
+  if (cover) photo.append(photoImg(cover, photo)); else photo.classList.add('noimg');
   photo.append(el('span', { class: 'badge' }));
 
   const lens = [...new Set(p.slots.filter(s => s.match && s.start && s.end).map(s => span(s.start, s.end)))].sort((a, b) => a - b);
