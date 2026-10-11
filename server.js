@@ -24,12 +24,18 @@ const HOST = process.env.HOST || '127.0.0.1';
 const search = (await import('./api/search.js')).default;
 const token = (await import('./api/token.js')).default;
 const img = (await import('./api/img.js')).default;
+const fees = (await import('./api/fees.js')).default;
 
 http.createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
   if (pathname === '/api/search') return search(req, res);
   if (pathname === '/api/token') return token(req, res);
   if (pathname === '/api/img') return img(req, res);
+  if (pathname === '/api/fees') return fees(req, res);
+  if (pathname === '/vendor/exceljs.min.js') {
+    res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
+    return fs.createReadStream(path.join(__dirname, 'public', 'vendor', 'exceljs.min.js')).pipe(res);
+  }
   if (pathname === '/' || pathname === '/index.html') {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
     return fs.createReadStream(path.join(__dirname, 'public', 'index.html')).pipe(res);

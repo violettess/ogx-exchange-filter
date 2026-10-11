@@ -113,6 +113,15 @@ ul.list { list-style: none; margin: 0 0 80px; padding: 0; }
 .sdg { display: flex; align-items: center; gap: 10px; font-size: 15px; min-width: 0; }
 .sdg b { flex: none; width: 30px; height: 30px; border-radius: 3px; color: #fff; display: grid; place-items: center; font-size: 14px; }
 .app { flex: none; white-space: nowrap; color: var(--muted); font-size: 15px; }
+.xport { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.xbtn { height: 38px; padding: 0 16px; border: 1px solid var(--fit); background: var(--fit); color: #fff; font-weight: 700; border-radius: 4px; cursor: pointer; font-size: 15px; }
+.xbtn:hover { background: #11654a; }
+.xbtn:disabled { background: #cfd8d3; border-color: #cfd8d3; cursor: not-allowed; }
+.xfee { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.xfee input { width: 76px; height: 32px; border: 1px solid #cfcdcb; border-radius: 4px; padding: 0 6px; font-size: 14px; }
+.xstat { margin: 10px 0 0; font-size: 14px; color: var(--text2); min-height: 0; }
+.xstat:empty { display: none; }
+.xstat.bad { color: #8f5200; }
 .morerow { list-style: none; text-align: center; padding: 24px 0; }
 .empty { padding: 40px 8px; color: var(--muted); font-size: 16px; }
 
@@ -238,6 +247,10 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
     <div class="bar">
       <div class="count" id="count"></div>
       <div class="right">
+        <div class="xport">
+          <button type="button" class="xbtn" id="export" disabled>Export to Excel</button>
+          <label class="xfee" title="Project fees depend on where the applicant is from. Enter the MC id of the applicant's country (Indonesia = 1539).">Fees for MC id <input type="number" id="feemc" min="1" step="1" value="1539"></label>
+        </div>
         <label class="chk"><input type="checkbox" id="showMiss"> Also show slots outside my dates</label>
         <label class="sortlbl">Sort by
           <select id="sort">
@@ -247,6 +260,7 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
           </select></label>
       </div>
     </div>
+    <p class="xstat" id="xstat" aria-live="polite"></p>
     <ul class="list" id="list"></ul>
   </section>
 </main>
@@ -444,7 +458,7 @@ $('#f').addEventListener('submit', async e => {
   const p = new URLSearchParams({ from: filter.from, to: filter.to, programme, openOnly: $('#openOnly').checked ? '1' : '0' });
   writeUrl();
   ctl?.abort(); ctl = new AbortController();
-  projects = []; visible = PAGE; finished = false; imgFails.n = 0; imgFails.first = null; cards.clear(); $('#list').replaceChildren(); $('#out').hidden = true;
+  projects = []; visible = PAGE; finished = false; lastList = []; $('#xstat').textContent = ''; imgFails.n = 0; imgFails.first = null; cards.clear(); $('#list').replaceChildren(); $('#out').hidden = true;
   $('#go').disabled = true; $('#stop').hidden = false; setStatus('Loading the project list…');
   try {
     const res = await fetch('/api/search?' + p, { signal: ctl.signal, headers: tok() ? { 'x-aiesec-token': tok() } : {} });
@@ -497,6 +511,7 @@ function techDetails(m) {
   if (st.token) line('Token used: ' + st.token);
   line(`Projects: ${st.projects ?? '?'} · slots: ${st.slots ?? '?'} · slots came with the list: ${st.slotsFromList ? 'yes' : 'no (one request per project)'}`);
   line(`Photos: ${st.noCover ?? '?'} of ${st.projects ?? '?'} projects have no photo.` + (st.coverSample ? ' Example photo URL: ' + st.coverSample : '') + (st.coverRaw ? ' (AIESEC sent it as: ' + st.coverRaw + ')' : ''));
+  line(st.lcAvailable ? 'Host LC names: available.' : 'Host LC names: AIESEC did not accept the name fields we tried.' + (st.lcDiag ? ` Fields on ${st.lcDiag.type}: ${st.lcDiag.fields.join(', ')}` : ''));
   d.append(el('p', { id: 'imgfail', text: imgFailText() }));
   return d;
 }
@@ -630,7 +645,7 @@ $('#cbox').addEventListener('click', () => cin.focus());
 renderChips();
 
 // ---------- rendering ----------
-const PAGE = 40; let visible = PAGE;
+const PAGE = 40; let visible = PAGE; let lastList = [], exporting = false;
 function safeCard(p) {
   const k = cardKey(p); let c = cards.get(k);
   if (c) return c;
@@ -654,6 +669,11 @@ function render() {
   const first = p => p.slots.find(x => x.match).start;
   list.sort((a, b) => s === 'fit' ? b.matchCount - a.matchCount || a.order - b.order : s === 'start' ? first(a).localeCompare(first(b)) : a.order - b.order);
   $('#out').hidden = !projects.length && !finished;
+  lastList = list;
+  const nSlots = list.reduce((a, p) => a + p.matchCount, 0), xb = $('#export');
+  xb.disabled = !finished || !nSlots || exporting;
+  xb.textContent = nSlots ? `Export to Excel (${nSlots.toLocaleString()} slot${nSlots === 1 ? '' : 's'})` : 'Export to Excel';
+  xb.title = finished ? '' : 'Available when the search has finished';
   const n = list.length, filtered = n !== projects.length;
   $('#count').replaceChildren(`${n.toLocaleString()} project${n === 1 ? '' : 's'} match`,
     filtered ? el('small', { text: `  of ${projects.length.toLocaleString()} with a slot inside your dates` }) : '',
@@ -710,7 +730,7 @@ function card(p) {
   const lens = [...new Set(p.slots.filter(s => s.match && s.start && s.end).map(s => span(s.start, s.end)))].sort((a, b) => a - b);
   const lenTxt = !lens.length ? null : lens.length === 1 ? dur(lens[0]) : `${dur(lens[0])} to ${dur(lens[lens.length - 1])}`;
   const meta = el('div', { class: 'meta' }, el('span', { class: 'gp', text: p.programme }));
-  for (const x of [p.location, lenTxt]) if (x) meta.append(el('span', { class: 'dot', text: '•' }), x);
+  for (const x of [p.hostLc ? 'LC: ' + p.hostLc : null, p.location, lenTxt]) if (x) meta.append(el('span', { class: 'dot', text: '•' }), x);
 
   const foot = el('div', { class: 'foot' });
   const sdg = el('div', { class: 'sdg' });
@@ -765,6 +785,104 @@ function strip(p) {
   for (const [d, cls] of [[filter.from, 'l'], [filter.to, 'r']]) { const k = el('span', { class: 'tick ' + cls, text: fmt(d) }); k.style.left = pct(t(d)) + '%'; box.append(k); }
   return box;
 }
+
+// ---------- export to Excel ----------
+try { const m = localStorage.getItem('slotfinder_feemc'); if (m) $('#feemc').value = m; } catch { /* ignore */ }
+$('#feemc').addEventListener('change', () => { try { localStorage.setItem('slotfinder_feemc', $('#feemc').value); } catch { /* ignore */ } });
+
+function feeText(v) { // AIESEC's fee field can be text, a number or an object; make it readable
+  if (v == null || v === '') return '';
+  if (typeof v === 'number' || typeof v === 'string') return String(v);
+  if (Array.isArray(v)) return v.map(feeText).filter(Boolean).join('; ');
+  if (typeof v === 'object') {
+    const parts = [];
+    for (const [k, x] of Object.entries(v)) { if (k === '__typename' || k === 'id' || x == null || typeof x === 'object') continue; parts.push(`${k.replace(/_/g, ' ')}: ${x}`); }
+    return parts.join('; ') || JSON.stringify(v).slice(0, 200);
+  }
+  return String(v);
+}
+const toDate = s => { if (!s) return null; const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+function loadScript(src) {
+  return new Promise((ok, fail) => {
+    if (window.ExcelJS) return ok();
+    const s = el('script', { src }); s.onload = ok; s.onerror = () => fail(new Error('Could not load the Excel library.'));
+    document.head.append(s);
+  });
+}
+function xstat(msg, bad) { const e = $('#xstat'); e.textContent = msg; e.className = 'xstat' + (bad ? ' bad' : ''); }
+
+$('#export').addEventListener('click', async () => {
+  const list = lastList.filter(p => p.matchCount); if (!list.length) return;
+  exporting = true; $('#export').disabled = true;
+  let fees = {}, feeNote = '', rawFee = null;
+  try {
+    const mc = Number($('#feemc').value);
+    if (!mc) feeNote = 'no MC id entered';
+    else {
+      xstat('Fetching project fees…');
+      const r = await fetch('/api/fees', { method: 'POST', headers: { 'content-type': 'application/json', ...(tok() ? { 'x-aiesec-token': tok() } : {}) }, body: JSON.stringify({ ids: list.map(p => p.id), mcId: mc }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'request failed');
+      fees = j.fees || {};
+      if (j.errors?.length) feeNote = j.errors[0];
+      rawFee = Object.values(fees).find(v => v != null && v !== '') ?? null;
+      if (!feeNote && rawFee == null) feeNote = 'AIESEC returned no fee data';
+    }
+  } catch (e) { feeNote = e.message; }
+
+  try {
+    xstat('Building the Excel file…');
+    await loadScript('/vendor/exceljs.min.js');
+    const wb = new ExcelJS.Workbook(); wb.creator = 'AIESEC Slot Finder'; wb.created = new Date();
+    const ws = wb.addWorksheet('Slots', { views: [{ state: 'frozen', ySplit: 1 }] });
+    const cols = [['No.', 6], ['Country', 16], ['Host LC', 26], ['Project name', 48], ['SDG', 38], ['Project fee', 30], ['Application deadline', 20], ['Start RE', 14], ['End RE', 14], ['Link', 10]];
+    ws.columns = cols.map(([header, width]) => ({ header, width }));
+    const head = ws.getRow(1); head.height = 24;
+    head.eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A4F8F' } }; c.alignment = { vertical: 'middle', wrapText: true }; });
+    const GREY = 'FF8A8A8A', LINE = { style: 'medium', color: { argb: 'FF5B7FA8' } };
+    let rows = 0;
+    list.forEach((p, i) => {
+      const g = p.sdg?.goal;
+      const sdgTxt = g ? `${g} - ${SDG_NAMES[g] || ''}${p.sdg.target ? ' (Target ' + p.sdg.target + ')' : ''}` : '';
+      const fee = feeText(fees[p.id]);
+      p.slots.filter(s => s.match).forEach((s, j) => {
+        const r = ws.addRow([i + 1, p.country || '', p.hostLc || '', p.title + (p.org ? ' with ' + p.org : ''), sdgTxt, fee, toDate(s.close), toDate(s.start), toDate(s.end), '']);
+        rows++;
+        r.getCell(10).value = { text: 'Open', hyperlink: p.url };
+        r.getCell(10).font = { color: { argb: 'FF0A6FDC' }, underline: true };
+        [7, 8, 9].forEach(c => { r.getCell(c).numFmt = 'd mmm yyyy'; r.getCell(c).alignment = { horizontal: 'left', vertical: 'top' }; });
+        r.eachCell({ includeEmpty: true }, (c, n) => {
+          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 ? 'FFEEF3F9' : 'FFFFFFFF' } };
+          if (n <= 6 || n === 10) c.alignment = { ...(c.alignment || {}), vertical: 'top', wrapText: n === 4 || n === 5 || n === 6 };
+          if (j > 0 && n <= 6) c.font = { color: { argb: GREY } };          // repeated project info on later slots
+          if (j === 0) c.border = { top: LINE };                            // thick line where a new project starts
+        });
+      });
+    });
+    ws.autoFilter = { from: 'A1', to: { row: ws.rowCount, column: cols.length } };
+
+    const info = wb.addWorksheet('Search info');
+    info.columns = [{ width: 26 }, { width: 80 }];
+    const f = filter || {}, rf = [];
+    if (refine.countries.size) rf.push('Country: ' + [...refine.countries].join(', '));
+    if (refine.sdgs.size) rf.push('SDG: ' + [...refine.sdgs].join(', '));
+    if (refine.min != null || refine.max != null) rf.push(`Slot length: ${refine.min ?? 'any'} to ${refine.max ?? 'any'} ${refine.unit}`);
+    [['Exported', new Date().toLocaleString('en-GB')], ['Programme', activeProg === 7 ? 'Global Volunteer' : 'Global Talent'],
+      ['Start no earlier than', fmt(f.from)], ['Finish no later than', fmt(f.to)], ['Local filters', rf.join(' | ') || 'none'],
+      ['Projects / slots', `${list.length} projects, ${rows} slots (only slots that fit are exported)`],
+      ['Fee for applicants from MC id', $('#feemc').value || '-'], ['Fee data', feeNote ? 'not available: ' + feeNote : 'fetched'],
+      ['Notes', 'Rows with the same No. belong to the same project. RE = realization period.']].forEach(r => info.addRow(r));
+    info.getColumn(1).font = { bold: true };
+
+    const buf = await wb.xlsx.writeBuffer();
+    const name = `aiesec-slots_${f.from || 'from'}_to_${f.to || 'to'}.xlsx`;
+    const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const a = el('a', { href: url, download: name }); document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    xstat(`Exported ${rows.toLocaleString()} slots from ${list.length.toLocaleString()} projects to ${name}.` + (feeNote ? ` The fee column is empty: ${feeNote}.` : ''), !!feeNote);
+  } catch (e) { xstat('Export failed: ' + e.message, true); }
+  finally { exporting = false; render(); }
+});
 </script>
 </body>
 </html>

@@ -16,6 +16,16 @@ Click "Connect to AIESEC". Two ways:
 The token is saved in your browser only and sent with each search. Optional: set `AIESEC_TOKEN` (in `.env` locally, or in
 Vercel's environment variables) so visitors never need to connect.
 
+## Export to Excel
+After a search, click "Export to Excel (N slots)". It exports the projects currently shown (after your local filters), one row per
+slot that fits, with columns: No., Country, Host LC, Project name, SDG, Project fee, Application deadline, Start RE, End RE, Link.
+Rows with the same No. belong to the same project (project info is repeated, in grey, on later slots; there is a line and
+alternating shading between projects; filters and sorting still work because nothing is merged). A second sheet records the filters used.
+- Project fee depends on where the applicant is from, so the fee is fetched at export time for the applicant's MC id
+  (box next to the button, default 1539 = Indonesia).
+- Host LC shows on each card and in the file. If AIESEC refuses the LC name fields, "Search details" says so.
+The Excel library is bundled in `public/vendor/` (ExcelJS, MIT), so nothing is loaded from a CDN.
+
 ## Deploy to Vercel
 Project layout: `public/` (the page) + `api/` (two serverless functions) + `lib/core.js`. `server.js` is only for local use.
 

@@ -2,13 +2,7 @@
 // POST /api/token {token}    -> checks the token against AIESEC and says how much it can see
 import { countVisible, serverToken, TOKEN_RE } from '../lib/core.js';
 
-const send = (res, code, obj) => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.setHeader('cache-control', 'no-store'); res.end(JSON.stringify(obj)); };
-async function readJson(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  if (typeof req.body === 'string') { try { return JSON.parse(req.body); } catch { return {}; } }
-  let b = ''; for await (const c of req) { b += c; if (b.length > 10_000) return {}; }
-  try { return JSON.parse(b); } catch { return {}; }
-}
+import { sendJson as send, readJson } from '../lib/http.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') return send(res, 200, { hasServerToken: !!serverToken(), demo: process.env.DEMO === '1' });
