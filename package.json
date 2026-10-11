@@ -1,0 +1,9 @@
+{
+  "name": "aiesec-slot-finder",
+  "version": "2.0.0",
+  "description": "Find AIESEC projects whose slots fit entirely inside your dates",
+  "type": "module",
+  "private": true,
+  "scripts": { "start": "node server.js", "demo": "node server.js --demo" },
+  "engines": { "node": ">=18" }
+}

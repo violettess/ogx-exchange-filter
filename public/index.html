@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunities that fit your dates · AIESEC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --band: #f7f6f5; --ink: #1a1a1a; --text2: #4d4d4d; --muted: #6f6f6f; --line: #e4e2e0;
+  --orange: #e8481f; --blue: #0a6fdc; --fit: #167a53; --fit-bg: #f1f8f4; --fit-line: #cfe6da;
+  --window: #d9e8fb; --edge: #0a6fdc; --miss: #bdbdbd; --warn: #8f5200;
+  --font: "Lato", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; font: 400 16px/1.5 var(--font); color: var(--ink); background: #fff; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* ---------- header ---------- */
+.top { background: var(--band); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+.titlebar { display: flex; justify-content: space-between; align-items: center; padding: 26px 0 16px; gap: 16px; }
+h1 { font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -.01em; }
+.chip { height: 40px; padding: 0 16px; border: 1px solid var(--line); background: #fff; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--miss); }
+.chip.on i { background: var(--fit); }
+.chip.off { border-color: var(--orange); color: var(--orange); }
+
+form.filters { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; padding-bottom: 18px; }
+.fld { display: flex; flex-direction: column; gap: 4px; }
+.fld > span { font-size: 14px; color: var(--text2); font-weight: 700; }
+.fld input { height: 46px; padding: 0 12px; border: 1px solid #cfcdcb; border-radius: 4px; background: #fff; font-size: 17px; }
+.fld input[type=date] { width: 190px; }
+.fld input[type=text] { width: 200px; }
+.chk { display: flex; align-items: center; gap: 8px; height: 46px; font-size: 15px; color: var(--text2); cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--blue); }
+.find { height: 46px; padding: 0 26px; border: 0; border-radius: 4px; background: var(--blue); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
+.find:hover { background: #0859b3; }
+.find:disabled { opacity: .55; cursor: progress; }
+.stop { height: 46px; padding: 0 16px; border: 1px solid #cfcdcb; background: #fff; border-radius: 4px; cursor: pointer; }
+.wnote { flex-basis: 100%; margin: -2px 0 0; font-size: 15px; color: var(--text2); }
+.wnote b { color: var(--edge); }
+
+.tabs { display: flex; gap: 4px; }
+.tab { padding: 11px 24px 10px; border: 0; background: #eceae8; border-radius: 4px 4px 0 0; cursor: pointer; font-size: 17px; color: var(--text2); }
+.tab[aria-selected=true] { background: #fff; color: var(--blue); font-weight: 700; }
+
+/* ---------- status + toolbar ---------- */
+main.wrap { max-width: 1020px; }
+#status { margin-top: 22px; font-size: 15px; color: var(--text2); min-height: 22px; }
+.progress { height: 5px; background: var(--line); margin-top: 8px; border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--blue); width: 0; transition: width .25s; }
+.err { background: #fdecea; border: 1px solid #f2b8b2; color: #7d1c12; padding: 12px 14px; border-radius: 4px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.err button { border: 1px solid currentColor; background: transparent; border-radius: 4px; padding: 4px 12px; cursor: pointer; color: inherit; }
+.tech { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.tech summary { cursor: pointer; }
+.tech p { margin: 4px 0; word-break: break-all; }
+.diag { margin-top: 10px; padding: 12px 14px; background: #fff8e6; border: 1px solid #f0dca0; border-radius: 4px; color: #4a3b00; font-size: 14px; }
+.diag p { margin: 0 0 6px; }
+.diag pre { font-size: 12px; overflow: auto; background: #fff; padding: 8px; border-radius: 4px; }
+
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; padding: 10px 0 12px; border-bottom: 1px solid var(--line); }
+.count { font-size: 18px; font-weight: 700; }
+.count small { font-weight: 400; color: var(--muted); font-size: 15px; }
+.bar .right { display: flex; gap: 8px 24px; align-items: center; flex-wrap: wrap; }
+.bar select { border: 1px solid #cfcdcb; background: #fff; font-size: 15px; height: 38px; padding: 0 8px; border-radius: 4px; cursor: pointer; }
+.bar .chk { height: auto; font-size: 15px; }
+.sortlbl { font-size: 15px; color: var(--text2); display: flex; gap: 8px; align-items: center; }
+
+/* ---------- project card ---------- */
+ul.list { list-style: none; margin: 0 0 80px; padding: 0; }
+.card { display: grid; grid-template-columns: 230px 1fr; gap: 22px; padding: 24px 8px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
+.card:hover { background: #fcfbfa; }
+.card:hover .t { text-decoration: underline; }
+.photo { width: 230px; height: 150px; border-radius: 4px; overflow: hidden; background: #e9e7e5; position: relative; }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo.noimg::after { content: 'Photo unavailable'; position: absolute; inset: 0; display: grid; place-items: center; color: #8a8886; font-size: 13px; }
+.photo .badge { position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; background: var(--orange); border-radius: 4px; }
+.t { font-size: 20px; font-weight: 700; margin: 0; line-height: 1.3; }
+.t em { font-weight: 400; color: var(--text2); }
+.meta { color: var(--text2); font-size: 15px; margin-top: 4px; }
+.meta .gp { color: var(--orange); font-weight: 700; }
+.meta .dot { margin: 0 8px; color: #aaa; }
+.desc { color: var(--muted); font-size: 15px; margin: 8px 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* the slot block: the part this tool adds */
+.slotbox { background: var(--fit-bg); border: 1px solid var(--fit-line); border-radius: 6px; padding: 12px 16px 8px; }
+.sh { font-size: 15px; color: var(--text2); }
+.sh b { color: var(--fit); font-size: 16px; }
+.strip { position: relative; margin: 12px 0 6px; }
+.band-w { position: absolute; top: 0; bottom: 18px; background: var(--window); border-left: 2px solid var(--edge); border-right: 2px solid var(--edge); }
+.sb { position: absolute; height: 8px; border-radius: 4px; background: var(--miss); }
+.sb.fit { background: var(--fit); }
+.sb.cl { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.sb.cr { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tick { position: absolute; bottom: 0; font-size: 12px; font-weight: 700; color: var(--edge); white-space: nowrap; }
+.tick.l { transform: translateX(-2px); } .tick.r { transform: translateX(calc(-100% + 2px)); }
+.slots { list-style: none; margin: 4px 0 0; padding: 0; }
+.slots li { display: grid; grid-template-columns: minmax(200px, 1.5fr) 80px 100px minmax(120px, 1.2fr); gap: 4px 14px; padding: 8px 0; border-top: 1px solid var(--fit-line); font-size: 15px; align-items: baseline; }
+.slots li:first-child { border-top: 0; }
+.slots .when { font-weight: 700; }
+.slots .apply { color: var(--text2); }
+.slots li.miss { color: var(--muted); }
+.slots li.miss .when { font-weight: 400; }
+.warn { color: var(--warn); font-weight: 700; }
+
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 16px; }
+.sdg { display: flex; align-items: center; gap: 10px; font-size: 15px; min-width: 0; }
+.sdg b { flex: none; width: 30px; height: 30px; border-radius: 3px; color: #fff; display: grid; place-items: center; font-size: 14px; }
+.app { flex: none; white-space: nowrap; color: var(--muted); font-size: 15px; }
+.empty { padding: 40px 8px; color: var(--muted); font-size: 16px; }
+
+/* ---------- refine panel ---------- */
+.refine { margin: 18px 0 6px; padding: 16px 18px 12px; background: #faf9f8; border: 1px solid var(--line); border-radius: 6px; }
+.rhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.rhead h2 { margin: 0; font-size: 18px; font-weight: 900; }
+.link { border: 0; background: none; color: var(--blue); cursor: pointer; font-size: 15px; padding: 2px 0; text-decoration: underline; }
+.rgrid { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: flex-start; }
+.rf { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.rf.grow { flex: 1 1 320px; }
+.rf > label { font-size: 14px; font-weight: 700; color: var(--text2); }
+.dur { display: flex; gap: 8px; align-items: center; color: var(--text2); }
+.dur input, .dur select { height: 42px; border: 1px solid #cfcdcb; border-radius: 4px; background: #fff; padding: 0 10px; font-size: 16px; }
+.dur input { width: 84px; }
+.combo { position: relative; }
+.cbox { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 42px; padding: 4px 8px; background: #fff; border: 1px solid #cfcdcb; border-radius: 4px; cursor: text; }
+.cbox:focus-within { outline: 3px solid var(--blue); outline-offset: 1px; }
+.cbox input { flex: 1; min-width: 160px; border: 0; outline: 0; height: 32px; font-size: 16px; background: transparent; }
+#cchips { display: contents; }
+.cc { display: inline-flex; gap: 6px; align-items: center; background: #e6f0fd; color: #0a4fa3; border: 0; border-radius: 999px; padding: 3px 6px 3px 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.cc:hover { background: #d3e5fb; }
+#clist { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px 0; list-style: none; background: #fff; border: 1px solid #cfcdcb; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.14); max-height: 280px; overflow: auto; }
+#clist li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 14px; cursor: pointer; font-size: 16px; }
+#clist li[aria-selected=true] { background: #e6f0fd; }
+#clist li small { color: var(--muted); font-size: 14px; }
+#clist li.none { color: var(--muted); cursor: default; }
+.sdgchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sdgchip { display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 3px; background: #fff; border: 1px solid #cfcdcb; border-radius: 999px; cursor: pointer; font-size: 14px; }
+.sdgchip b { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 13px; }
+.sdgchip small { color: var(--muted); }
+.sdgchip:hover { border-color: #888; }
+.sdgchip[aria-pressed=true] { background: #e6f0fd; border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); font-weight: 700; }
+.rhint { margin: 2px 0 0; font-size: 14px; color: var(--warn); min-height: 0; }
+.rhint:empty { display: none; }
+
+/* ---------- connect dialog ---------- */
+dialog { border: 0; border-radius: 8px; padding: 0; max-width: 600px; width: calc(100% - 32px); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+dialog::backdrop { background: rgba(0,0,0,.4); }
+.dlg { padding: 26px 28px 22px; }
+.dlg h2 { margin: 0 0 6px; font-size: 24px; font-weight: 900; }
+.dlg .lead { margin: 0 0 14px; color: var(--text2); }
+.dlg ol { padding-left: 22px; margin: 0 0 16px; }
+.dlg li { margin-bottom: 8px; }
+.dlg a { color: var(--blue); }
+.dlg code { background: #f1efed; padding: 1px 5px; border-radius: 3px; font-size: 14px; }
+.dlg .row { display: flex; gap: 8px; }
+.dlg input[type=text] { flex: 1; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid #cfcdcb; border-radius: 4px; font-size: 15px; }
+.dlg .msg { margin-top: 10px; font-size: 15px; min-height: 22px; }
+.dlg .msg.bad { color: #b3261e; } .dlg .msg.good { color: var(--fit); font-weight: 700; }
+.dlg details { margin-top: 14px; font-size: 14px; color: var(--text2); }
+.dlg summary { cursor: pointer; }
+.bm { display: inline-block; padding: 5px 12px; background: var(--orange); color: #fff !important; border-radius: 4px; font-weight: 700; text-decoration: none; cursor: grab; margin: 4px 0; }
+.dlg menu { display: flex; justify-content: space-between; padding: 0; margin: 18px 0 0; }
+.dlg menu button { padding: 8px 16px; border: 1px solid #cfcdcb; background: #fff; border-radius: 4px; cursor: pointer; }
+
+@media (max-width: 800px) {
+  .wrap { padding: 0 16px; }
+  .card { grid-template-columns: 1fr; gap: 14px; }
+  .photo { width: 100%; height: 190px; }
+  h1 { font-size: 26px; }
+  .fld { flex: 1 1 150px; } .fld input[type=date], .fld input[type=text] { width: 100%; }
+  .slots li { grid-template-columns: 1fr 1fr; }
+  .slots .when { grid-column: 1 / 3; }
+  .foot { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="titlebar">
+      <h1 id="h1">Volunteering opportunities</h1>
+      <button type="button" class="chip off" id="conn"><i></i><span>Connect to AIESEC</span></button>
+    </div>
+    <form class="filters" id="f">
+      <label class="fld"><span>Start no earlier than</span><input type="date" id="from" required></label>
+      <label class="fld"><span>Finish no later than</span><input type="date" id="to" required></label>
+      <label class="chk"><input type="checkbox" id="openOnly"> Only slots still open</label>
+      <button class="find" id="go" type="submit">Find projects</button>
+      <button class="stop" id="stop" type="button" hidden>Stop</button>
+      <p class="wnote" id="wnote" aria-live="polite"></p>
+    </form>
+    <div class="tabs" role="tablist" aria-label="Programme">
+      <button class="tab" role="tab" data-p="7" aria-selected="true">Global Volunteer</button>
+      <button class="tab" role="tab" data-p="8" aria-selected="false">Global Talent</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="status" aria-live="polite"></div>
+  <section id="out" hidden>
+    <div class="refine" id="refine" hidden>
+      <div class="rhead"><h2>Refine results</h2><button type="button" class="link" id="clear">Clear filters</button></div>
+      <div class="rgrid">
+        <div class="rf grow">
+          <label id="clabel" for="cin">Country</label>
+          <div class="combo">
+            <div class="cbox" id="cbox"><span id="cchips"></span><input id="cin" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="clist" placeholder="Type to search countries" autocomplete="off"></div>
+            <ul id="clist" role="listbox" aria-labelledby="clabel" hidden></ul>
+          </div>
+        </div>
+        <div class="rf">
+          <label for="dmin">Slot length</label>
+          <div class="dur">
+            <input type="number" id="dmin" min="0" step="1" placeholder="Min" aria-label="Minimum slot length">
+            <span aria-hidden="true">to</span>
+            <input type="number" id="dmax" min="0" step="1" placeholder="Max" aria-label="Maximum slot length">
+            <select id="dunit" aria-label="Unit"><option value="weeks">weeks</option><option value="months">months</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="rf" id="sdgrow">
+        <label>Sustainable Development Goal</label>
+        <div class="sdgchips" id="sdgchips"></div>
+      </div>
+      <p class="rhint" id="rhint"></p>
+    </div>
+    <div class="bar">
+      <div class="count" id="count"></div>
+      <div class="right">
+        <label class="chk"><input type="checkbox" id="showMiss"> Also show slots outside my dates</label>
+        <label class="sortlbl">Sort by
+          <select id="sort">
+            <option value="new">Newest first</option>
+            <option value="fit">Most slots that fit</option>
+            <option value="start">Earliest start</option>
+          </select></label>
+      </div>
+    </div>
+    <ul class="list" id="list"></ul>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="dlg">
+    <h2>Connect to AIESEC</h2>
+    <p class="lead">Slot Finder needs the access token that aiesec.org uses for its own search. You don't need to log in.</p>
+    <ol>
+      <li>Open <a href="https://aiesec.org/search" target="_blank" rel="noopener">aiesec.org/search</a>, press <code>F12</code>, and open the <b>Network</b> tab. Reload the page.</li>
+      <li>Click any request named <code>graphql</code>. Under <b>Request Headers</b>, copy the value next to <code>authorization</code>.</li>
+      <li>Paste it here:</li>
+    </ol>
+    <div class="row"><input type="text" id="tok" placeholder="Paste the authorization value" autocomplete="off" spellcheck="false"><button type="button" class="find" id="save">Connect</button></div>
+    <div class="msg" id="msg" role="status"></div>
+    <p class="small" style="margin:8px 0 0;font-size:13px;color:var(--muted)">The token is saved in this browser only and sent with each search.</p>
+    <details>
+      <summary>Logged in to EXPA instead? (limited)</summary>
+      <p>The token from a logged-in EXPA account usually sees far fewer opportunities than the public one, so the steps above are better. If you still want to try, drag this to your bookmarks bar, then click it on the aiesec.org / EXPA tab:<br><a class="bm" id="bm" href="#">Send token to Slot Finder</a></p>
+    </details>
+    <menu><button type="button" id="disc">Disconnect</button><button type="button" id="close">Close</button></menu>
+  </div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const MS = 864e5;
+const t = d => Date.parse(d + 'T00:00:00Z');
+const D = (d, o) => new Date(t(d)).toLocaleDateString('en-GB', { timeZone: 'UTC', ...o });
+const fmt = d => d ? D(d, { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
+const fmtS = d => D(d, { day: 'numeric', month: 'short' });
+const span = (a, b) => Math.round((t(b) - t(a)) / MS);
+const dur = n => n >= 14 && n % 7 === 0 ? `${n / 7} weeks` : n === 7 ? '1 week' : `${n} days`;
+function range(a, b) {
+  if (!a || !b) return '–';
+  return a.slice(0, 4) === b.slice(0, 4) ? `${fmtS(a)} – ${fmt(b)}` : `${fmt(a)} – ${fmt(b)}`;
+}
+const SDG_NAMES = ['', 'No Poverty', 'Zero Hunger', 'Good Health And Well Being', 'Quality Education', 'Gender Equality', 'Clean Water And Sanitation', 'Affordable And Clean Energy', 'Decent Work And Economic Growth', 'Industry, Innovation And Infrastructure', 'Reduced Inequalities', 'Sustainable Cities And Communities', 'Responsible Consumption And Production', 'Climate Action', 'Life Below Water', 'Life On Land', 'Peace, Justice And Strong Institutions', 'Partnerships For The Goals'];
+const SDG = ['', '#E5243B', '#DDA63A', '#4C9F38', '#C5192D', '#FF3A21', '#26BDE2', '#FCC30B', '#A21942', '#FD6925', '#DD1367', '#FD9D24', '#BF8B2E', '#3F7E44', '#0A97D9', '#56C02B', '#00689D', '#19486A'];
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) k === 'class' ? e.className = v : k === 'text' ? e.textContent = v : e.setAttribute(k, v);
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+}
+
+let programme = 7, projects = [], filter = null, ctl = null;
+const cards = new Map(); // project id -> <li>, kept so photos don't reload while results stream in
+
+// ---------- init ----------
+const qs = new URLSearchParams(location.search);
+const plus = n => new Date(Date.now() + n * MS).toISOString().slice(0, 10);
+$('#from').value = qs.get('from') || plus(0);
+$('#to').value = qs.get('to') || plus(60);
+$('#openOnly').checked = qs.get('openOnly') === '1';
+setProgramme(Number(qs.get('programme')) === 8 ? 8 : 7);
+// local filters (applied in the browser, no new search needed)
+const refine = {
+  countries: new Set(qs.getAll('country').filter(Boolean)),
+  sdgs: new Set(qs.getAll('sdg').map(Number).filter(Boolean)),
+  min: qs.get('min') ? Number(qs.get('min')) : null,
+  max: qs.get('max') ? Number(qs.get('max')) : null,
+  unit: qs.get('unit') === 'months' ? 'months' : 'weeks',
+};
+let activeProg = programme;
+
+function setProgramme(p) {
+  programme = p;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(Number(b.dataset.p) === p)));
+  $('#h1').textContent = p === 7 ? 'Volunteering opportunities' : 'Professional opportunities';
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setProgramme(Number(b.dataset.p))));
+
+function note() {
+  const f = $('#from').value, to = $('#to').value, n = $('#wnote');
+  if (!f || !to) { n.textContent = ''; return; }
+  if (f > to) { n.textContent = 'The finish date is before the start date.'; return; }
+  n.replaceChildren('A slot counts if it starts on or after ', el('b', { text: fmt(f) }), ' and ends on or before ', el('b', { text: fmt(to) }), ` (${dur(span(f, to))} in total).`);
+}
+$('#from').addEventListener('input', note); $('#to').addEventListener('input', note); note();
+
+// ---------- connection ----------
+const dlg = $('#dlg');
+// The token lives in this browser only and is sent with each search. A server-side default may also exist.
+const TK = 'slotfinder_token';
+const getTok = () => { try { return localStorage.getItem(TK) || ''; } catch { return ''; } };
+const setTok = v => { try { localStorage.setItem(TK, v); } catch { /* private mode: token lasts until reload only */ memTok = v; } };
+const clearTok = () => { memTok = ''; try { localStorage.removeItem(TK); } catch { /* ignore */ } };
+let memTok = '';
+const tok = () => getTok() || memTok;
+let serverInfo = { hasServerToken: false, demo: false };
+async function refreshSession() {
+  try { serverInfo = await (await fetch('/api/token')).json(); } catch { /* keep defaults */ }
+  const s = { connected: !!tok() || serverInfo.hasServerToken, demo: serverInfo.demo };
+  const c = $('#conn'); c.className = 'chip ' + (s.connected ? 'on' : 'off');
+  c.lastChild.textContent = s.connected ? (s.demo ? 'Demo data' : 'Connected') : 'Connect to AIESEC';
+  return s;
+}
+function bookmarklet() {
+  const code = `(function(){var f=null,clean=function(v){if(v==null)return null;v=String(v).trim();try{var j=JSON.parse(v);if(typeof j==='string')v=j;else if(j&&typeof j==='object')v=j.access_token||j.token||j.accessToken||v}catch(e){}v=String(v).replace(/^["']|["']$/g,'').replace(/^Bearer\\\\s+/i,'');return /^[A-Za-z0-9._~+\\\\/=-]{16,300}$/.test(v)?v:null};try{f=clean(localStorage.getItem('aiesec_token'))||clean(sessionStorage.getItem('aiesec_token'))}catch(e){}if(!f)try{[localStorage,sessionStorage].forEach(function(st){for(var i=0;i<st.length&&!f;i++){var k=st.key(i);if(/token/i.test(k))f=clean(st.getItem(k))}})}catch(e){}if(!f){var m=document.cookie.match(/[a-f0-9]{64}/);if(m)f=m[0]}if(!f){alert('No AIESEC token found on this page. Paste the token manually in Slot Finder instead.');return}window.open('${location.origin}/#token='+encodeURIComponent(f),'_blank')})()`;
+  return 'javascript:' + encodeURIComponent(code);
+}
+$('#bm').setAttribute('href', bookmarklet());
+$('#bm').addEventListener('click', e => { e.preventDefault(); showMsg('Drag the orange button to your bookmarks bar; don\'t click it here.', false); });
+$('#conn').addEventListener('click', openDlg);
+function openDlg() { showMsg('', true); dlg.showModal(); $('#tok').focus(); }
+$('#close').addEventListener('click', () => dlg.close());
+function showMsg(m, ok) { const e = $('#msg'); e.textContent = m; e.className = 'msg ' + (m ? (ok ? 'good' : 'bad') : ''); }
+async function sendToken(token) {
+  showMsg('Checking token…', true);
+  const r = await fetch('/api/token', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token }) });
+  const j = await r.json();
+  if (!r.ok) { showMsg(j.error || 'Could not connect.', false); return null; }
+  setTok(token);
+  await refreshSession();
+  if (j.total < 100) showMsg(`Connected, but this token can only see ${j.total} Global Volunteer opportunities. aiesec.org's public search lists well over a thousand, so this looks like a limited token. Use the one from aiesec.org/search instead.`, false);
+  else showMsg(`Connected. This token can see ${j.total.toLocaleString()} Global Volunteer opportunities.`, true);
+  return j;
+}
+$('#save').addEventListener('click', async () => {
+  const v = $('#tok').value.trim().replace(/^authorization:\s*/i, '');
+  const j = v && await sendToken(v);
+  if (j) { $('#tok').value = ''; if (j.total >= 100) setTimeout(() => dlg.close(), 1200); }
+});
+$('#disc').addEventListener('click', async () => { clearTok(); await refreshSession(); showMsg('Disconnected.', true); });
+
+(async () => {
+  const m = location.hash.match(/^#token=([^&]+)/);
+  if (m) { history.replaceState(null, '', location.pathname + location.search); dlg.showModal(); const j = await sendToken(decodeURIComponent(m[1])); if (j && j.total >= 100) setTimeout(() => dlg.close(), 1500); }
+  const s = await refreshSession();
+  if (!s.connected && !m) setStatus('Connect to AIESEC first (top right), then search.');
+})();
+
+// ---------- search ----------
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault();
+  filter = { from: $('#from').value, to: $('#to').value };
+  if (filter.from > filter.to) return note();
+  activeProg = programme; if (activeProg !== 7) refine.sdgs.clear();
+  const p = new URLSearchParams({ from: filter.from, to: filter.to, programme, openOnly: $('#openOnly').checked ? '1' : '0' });
+  writeUrl();
+  ctl?.abort(); ctl = new AbortController();
+  projects = []; finished = false; imgFails.n = 0; imgFails.first = null; cards.clear(); $('#list').replaceChildren(); $('#out').hidden = true;
+  $('#go').disabled = true; $('#stop').hidden = false; setStatus('Loading the project list…');
+  try {
+    const res = await fetch('/api/search?' + p, { signal: ctl.signal, headers: tok() ? { 'x-aiesec-token': tok() } : {} });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Request failed');
+    const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '', fin = false;
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf('\n')) >= 0) { const l = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (l && handle(JSON.parse(l))) fin = true; }
+    }
+    if (!fin && !ctl.signal.aborted) setError('The connection closed before the search finished. Try again.');
+  } catch (err) { if (err.name !== 'AbortError') setError(err.message); }
+  finally { $('#go').disabled = false; $('#stop').hidden = true; clearTimeout(timer); timer = 0; render(); }
+});
+$('#stop').addEventListener('click', () => { ctl?.abort(); setStatus(`Stopped. ${projects.length} project${projects.length === 1 ? '' : 's'} found so far.`); });
+$('#sort').addEventListener('change', render);
+$('#showMiss').addEventListener('change', render);
+
+let timer = 0; const soon = () => { if (!timer) timer = setTimeout(() => { timer = 0; render(); }, 400); };
+let finished = false;
+function handle(m) {
+  if (m.type === 'list') setStatus(`Loading the project list… ${m.fetched.toLocaleString()} of ${m.total.toLocaleString()}`);
+  else if (m.type === 'scan') setProgress(m.done, m.total);
+  else if (m.type === 'project') { projects.push(m.project); soon(); }
+  else if (m.type === 'error') { setError(m.message); return true; }
+  else if (m.type === 'done') { finished = true; setDone(m); return true; }
+  return false;
+}
+function setStatus(s) { $('#status').replaceChildren(s); }
+function setError(msg) {
+  const box = el('div', { class: 'err', role: 'alert' }, el('span', { text: msg }));
+  if (/token|connect/i.test(msg)) { const b = el('button', { type: 'button', text: 'Connect to AIESEC' }); b.onclick = openDlg; box.append(b); }
+  $('#status').replaceChildren(box);
+}
+function setProgress(d, tot) {
+  const bar = el('div', { class: 'progress' }, el('i')); bar.firstChild.style.width = tot ? 100 * d / tot + '%' : '0';
+  $('#status').replaceChildren(`Checking slots… ${d.toLocaleString()} of ${tot.toLocaleString()} projects checked`, bar);
+}
+function setDone(m) {
+  const st = m.stats || {}, box = el('div');
+  box.append(`Done. Checked ${m.scanned.toLocaleString()} projects and ${(st.slots ?? 0).toLocaleString()} slots.` + (m.failed ? ` ${m.failed} projects could not be read.` : ''));
+  if (m.matched === 0 || m.failed) box.append(diag(m));
+  box.append(techDetails(m));
+  $('#status').replaceChildren(box);
+}
+function techDetails(m) {
+  const st = m.stats || {}, d = el('details', { class: 'tech' });
+  d.append(el('summary', { text: 'Search details' }));
+  const line = t => d.append(el('p', { text: t }));
+  if (st.token) line('Token used: ' + st.token);
+  line(`Projects: ${st.projects ?? '?'} · slots: ${st.slots ?? '?'} · slots came with the list: ${st.slotsFromList ? 'yes' : 'no (one request per project)'}`);
+  line(`Photos: ${st.noCover ?? '?'} of ${st.projects ?? '?'} projects have no photo.` + (st.coverSample ? ' Example photo URL: ' + st.coverSample : ''));
+  d.append(el('p', { id: 'imgfail', text: imgFailText() }));
+  return d;
+}
+function diag(m) {
+  const st = m.stats, r = st.reasons || {}, d = el('div', { class: 'diag' });
+  const p = txt => d.append(el('p', { text: txt }));
+  if (st.token) p('Token used: ' + st.token + '. It should match the start and end of the authorization header you see in DevTools.');
+  if (!st.projects) {
+    if (st.probe && st.probe.noFilters === 0) p('AIESEC answered, but reports 0 opportunities even with no filters. That means the token is not one the search API accepts. Click Connect to AIESEC and paste the "authorization" value from a graphql request on aiesec.org/search.');
+    else if (st.probe && st.probe.programmeOnly === 0) p('AIESEC has opportunities, but none for this programme tab. Try the other tab.');
+    else p('No projects matched this tab and country. Check the spelling of the country, or try the other tab.');
+  } else {
+    const parts = [];
+    for (const [k, label] of [['Starts before your start date', 'start before your start date'], ['Ends after your deadline', 'end after your finish date'], ['No dates', 'have no dates'], ['Applications closed', 'are closed to applications']])
+      if (r[k]) parts.push(`${r[k].toLocaleString()} ${label}`);
+    if (m.matched === 0) p(`Nothing fits. Your window is ${m.windowDays} days` + (st.minLen != null ? `, and the shortest slot found lasts ${st.minLen} days.` : '.') + (parts.length ? ` Of the slots checked: ${parts.join(', ')}.` : ''));
+    if (st.noSlotData) p(`${st.noSlotData} projects returned no slot data.`);
+  }
+  if (st.firstError) p('First problem seen: ' + st.firstError);
+  if (st.dateFilterDropped) p('AIESEC returned nothing with the "starting from" filter, so the search ran without it.');
+  if (st.sample) { const dt = el('details'); dt.append(el('summary', { text: 'Show a sample of the raw slot data' }), el('pre', { text: JSON.stringify(st.sample, null, 2) })); d.append(dt); }
+  return d;
+}
+
+// ---------- local filters ----------
+const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const unitDays = () => refine.unit === 'months' ? 30.4 : 7;
+const tol = () => refine.unit === 'months' ? 4 : 1;
+
+// returns the project with duration applied to its slots, or null if the project is filtered out.
+// skip = 'country' | 'sdg' lets us compute facet counts that ignore that one filter.
+function applyRefine(p, skip) {
+  if (skip !== 'country' && refine.countries.size && !refine.countries.has(p.country)) return null;
+  if (skip !== 'sdg' && refine.sdgs.size && !(p.sdg && refine.sdgs.has(p.sdg.goal))) return null;
+  const lo = refine.min != null ? refine.min * unitDays() - tol() : -Infinity;
+  const hi = refine.max != null ? refine.max * unitDays() + tol() : Infinity;
+  if (lo === -Infinity && hi === Infinity) return p;
+  const slots = p.slots.map(s => {
+    if (!s.match) return s;
+    const n = span(s.start, s.end);
+    if (n < lo) return { ...s, match: false, reason: `Shorter than ${refine.min} ${refine.unit}` };
+    if (n > hi) return { ...s, match: false, reason: `Longer than ${refine.max} ${refine.unit}` };
+    return s;
+  });
+  const matchCount = slots.filter(s => s.match).length;
+  return matchCount ? { ...p, slots, matchCount } : null;
+}
+const tally = (list, key) => { const m = new Map(); for (const p of list) { const k = key(p); if (k != null && k !== '') m.set(k, (m.get(k) || 0) + 1); } return m; };
+let countryCounts = new Map();
+
+function writeUrl() {
+  const p = new URLSearchParams({ from: $('#from').value, to: $('#to').value, programme, openOnly: $('#openOnly').checked ? '1' : '0' });
+  refine.countries.forEach(c => p.append('country', c));
+  refine.sdgs.forEach(g => p.append('sdg', g));
+  if (refine.min != null) p.set('min', refine.min);
+  if (refine.max != null) p.set('max', refine.max);
+  if (refine.unit !== 'weeks') p.set('unit', refine.unit);
+  history.replaceState(null, '', '?' + p);
+}
+function refineChanged() { writeUrl(); render(); }
+
+// duration
+const numOrNull = v => (v === '' || isNaN(Number(v))) ? null : Math.max(0, Number(v));
+$('#dmin').value = refine.min ?? ''; $('#dmax').value = refine.max ?? ''; $('#dunit').value = refine.unit;
+$('#dmin').addEventListener('input', e => { refine.min = numOrNull(e.target.value); refineChanged(); });
+$('#dmax').addEventListener('input', e => { refine.max = numOrNull(e.target.value); refineChanged(); });
+$('#dunit').addEventListener('change', e => { refine.unit = e.target.value; refineChanged(); });
+$('#clear').addEventListener('click', () => {
+  refine.countries.clear(); refine.sdgs.clear(); refine.min = refine.max = null; refine.unit = 'weeks';
+  $('#dmin').value = $('#dmax').value = ''; $('#dunit').value = 'weeks'; renderChips(); refineChanged();
+});
+
+// SDG chips (built once so keyboard focus survives re-rendering)
+const sdgChipEls = new Map();
+for (let g = 1; g <= 17; g++) {
+  const b = el('button', { type: 'button', class: 'sdgchip', 'aria-pressed': 'false' }, el('b', { text: String(g) }), el('span', { text: SDG_NAMES[g] }), el('small'));
+  b.firstChild.style.background = SDG[g];
+  b.addEventListener('click', () => { refine.sdgs.has(g) ? refine.sdgs.delete(g) : refine.sdgs.add(g); refineChanged(); });
+  sdgChipEls.set(g, b); $('#sdgchips').append(b);
+}
+function updateSdgChips(counts) {
+  let shown = 0;
+  for (const [g, b] of sdgChipEls) {
+    const n = counts.get(g) || 0, on = refine.sdgs.has(g);
+    b.hidden = !n && !on; if (!b.hidden) shown++;
+    b.setAttribute('aria-pressed', String(on));
+    b.lastChild.textContent = n;
+  }
+  $('#sdgrow').hidden = activeProg !== 7 || !shown;
+}
+
+// country combobox (multi-select, type to search)
+const cin = $('#cin'), clist = $('#clist');
+let copts = [], cact = -1;
+function renderChips() {
+  $('#cchips').replaceChildren(...[...refine.countries].map(c => {
+    const b = el('button', { type: 'button', class: 'cc', 'aria-label': `Remove ${c}` }, c, el('span', { 'aria-hidden': 'true', text: '×' }));
+    b.addEventListener('click', e => { e.stopPropagation(); refine.countries.delete(c); renderChips(); refineChanged(); });
+    return b;
+  }));
+}
+function buildOpts() {
+  const q = norm(cin.value.trim());
+  copts = [...countryCounts].filter(([n]) => !refine.countries.has(n) && (!q || norm(n).includes(q)))
+    .sort((a, b) => (norm(a[0]).startsWith(q) ? 0 : 1) - (norm(b[0]).startsWith(q) ? 0 : 1) || a[0].localeCompare(b[0]));
+  clist.replaceChildren(...(copts.length
+    ? copts.map(([n, c], i) => { const li = el('li', { role: 'option', id: 'co' + i, 'data-i': String(i), 'aria-selected': 'false' }, el('span', { text: n }), el('small', { text: `${c} project${c === 1 ? '' : 's'}` })); return li; })
+    : [el('li', { class: 'none', text: q ? 'No country with a fitting slot matches that' : 'No more countries' })]));
+  clist.hidden = false; cin.setAttribute('aria-expanded', 'true');
+}
+function setActive(i) {
+  cact = copts.length ? Math.max(0, Math.min(i, copts.length - 1)) : -1;
+  clist.querySelectorAll('[role=option]').forEach((li, k) => li.setAttribute('aria-selected', String(k === cact)));
+  if (cact >= 0) { cin.setAttribute('aria-activedescendant', 'co' + cact); document.getElementById('co' + cact)?.scrollIntoView({ block: 'nearest' }); }
+  else cin.removeAttribute('aria-activedescendant');
+}
+function closeList() { clist.hidden = true; cin.setAttribute('aria-expanded', 'false'); cact = -1; cin.removeAttribute('aria-activedescendant'); }
+function pick(name) { refine.countries.add(name); cin.value = ''; renderChips(); closeList(); refineChanged(); cin.focus(); }
+cin.addEventListener('focus', () => { buildOpts(); setActive(-1); });
+cin.addEventListener('input', () => { buildOpts(); setActive(0); });
+cin.addEventListener('blur', () => setTimeout(closeList, 100));
+cin.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (clist.hidden) buildOpts(); setActive(cact + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(cact - 1); }
+  else if (e.key === 'Enter') { if (cact >= 0 && copts[cact]) { e.preventDefault(); pick(copts[cact][0]); } }
+  else if (e.key === 'Escape') closeList();
+  else if (e.key === 'Backspace' && !cin.value && refine.countries.size) { refine.countries.delete([...refine.countries].pop()); renderChips(); refineChanged(); }
+});
+clist.addEventListener('mousedown', e => { e.preventDefault(); const li = e.target.closest('li[data-i]'); if (li) pick(copts[+li.dataset.i][0]); });
+$('#cbox').addEventListener('click', () => cin.focus());
+renderChips();
+
+// ---------- rendering ----------
+const cardKey = p => p.id + '|' + p.slots.map(x => x.match ? 1 : 0).join('') + ($('#showMiss').checked ? 'm' : '');
+function render() {
+  const s = $('#sort').value;
+  const facet = skip => projects.map(p => applyRefine(p, skip)).filter(Boolean);
+  countryCounts = tally(facet('country'), p => p.country);
+  const list = facet(null);
+  updateSdgChips(tally(facet('sdg'), p => p.sdg?.goal));
+  $('#refine').hidden = !projects.length;
+  $('#rhint').textContent = refine.min != null && refine.max != null && refine.min > refine.max ? 'The minimum length is larger than the maximum.' : '';
+
+  const first = p => p.slots.find(x => x.match).start;
+  list.sort((a, b) => s === 'fit' ? b.matchCount - a.matchCount || a.order - b.order : s === 'start' ? first(a).localeCompare(first(b)) : a.order - b.order);
+  $('#out').hidden = !projects.length && !finished;
+  const n = list.length, filtered = n !== projects.length;
+  $('#count').replaceChildren(`${n.toLocaleString()} project${n === 1 ? '' : 's'} match`,
+    filtered ? el('small', { text: `  of ${projects.length.toLocaleString()} with a slot inside your dates` }) : '',
+    finished ? '' : el('small', { text: '  (still searching)' }));
+
+  const used = new Set();
+  const nodes = list.map(p => { const k = cardKey(p); used.add(k); let c = cards.get(k); if (!c) { c = card(p); cards.set(k, c); } return c; });
+  for (const k of [...cards.keys()]) if (!used.has(k)) cards.delete(k);
+  if (nodes.length) $('#list').replaceChildren(...nodes);
+  else {
+    const empty = el('li', { class: 'empty' }, !projects.length ? (finished ? 'No project has a slot inside these dates. Try a longer window.' : 'Nothing found yet…') : 'No project matches these filters. ');
+    if (projects.length) { const b = el('button', { type: 'button', class: 'link', text: 'Clear filters' }); b.onclick = () => $('#clear').click(); empty.append(b); }
+    $('#list').replaceChildren(empty);
+  }
+}
+
+// Photo: try the CDN directly; if that fails, retry through our server (sends aiesec.org as referrer); else placeholder.
+const normUrl = u => u.startsWith('//') ? 'https:' + u : (location.protocol === 'https:' ? u.replace(/^http:\/\//, 'https://') : u);
+const imgFails = { n: 0, first: null };
+const imgFailText = () => imgFails.n ? `${imgFails.n} photo${imgFails.n === 1 ? '' : 's'} could not be loaded, even through the server. First one: ${imgFails.first}` : '';
+function noteImgFail(src) {
+  imgFails.n++; imgFails.first = imgFails.first || src;
+  const e = document.getElementById('imgfail'); if (e) e.textContent = imgFailText();
+}
+function photoImg(src, box) {
+  const url = normUrl(src);
+  const im = el('img', { src: url, alt: '', decoding: 'async', referrerpolicy: 'no-referrer' });
+  let proxied = false;
+  im.onerror = () => {
+    if (!proxied && !url.startsWith('data:')) { proxied = true; im.src = '/api/img?u=' + encodeURIComponent(url); return; }
+    im.remove(); box.classList.add('noimg'); noteImgFail(src);
+  };
+  return im;
+}
+
+function card(p) {
+  const photo = el('div', { class: 'photo' });
+  if (p.cover) photo.append(photoImg(p.cover, photo)); else photo.classList.add('noimg');
+  photo.append(el('span', { class: 'badge' }));
+
+  const lens = [...new Set(p.slots.filter(s => s.match && s.start && s.end).map(s => span(s.start, s.end)))].sort((a, b) => a - b);
+  const lenTxt = !lens.length ? null : lens.length === 1 ? dur(lens[0]) : `${dur(lens[0])} to ${dur(lens[lens.length - 1])}`;
+  const meta = el('div', { class: 'meta' }, el('span', { class: 'gp', text: p.programme }));
+  for (const x of [p.location, lenTxt]) if (x) meta.append(el('span', { class: 'dot', text: '•' }), x);
+
+  const foot = el('div', { class: 'foot' });
+  const sdg = el('div', { class: 'sdg' });
+  const g = p.sdg?.goal;
+  if (g && SDG_NAMES[g]) { const b = el('b', { text: String(g) }); b.style.background = SDG[g]; sdg.append(b, `${SDG_NAMES[g]}${p.sdg.target ? ' - Target ' + p.sdg.target : ''}`); }
+  foot.append(sdg, el('span', { class: 'app', text: p.applicants == null ? '' : `${p.applicants} applicant${p.applicants === 1 ? '' : 's'}` }));
+
+  return el('li', {}, el('a', { class: 'card', href: p.url, target: '_blank', rel: 'noopener' }, photo,
+    el('div', {},
+      el('h3', { class: 't' }, p.title, ' ', el('em', { text: 'with' }), ' ', el('b', { text: p.org || '' })),
+      meta, el('p', { class: 'desc', text: p.description }), slotBox(p), foot)));
+}
+
+function slotBox(p) {
+  const showMiss = $('#showMiss').checked;
+  const head = el('div', { class: 'sh' }, el('b', { text: `${p.matchCount} of ${p.totalSlots}` }), ` slot${p.totalSlots === 1 ? '' : 's'} fit${p.totalSlots === 1 ? 's' : ''} your dates`);
+  const box = el('div', { class: 'slotbox' }, head, strip(p));
+  const ul = el('ul', { class: 'slots' });
+  for (const s of p.slots.filter(s => s.match || showMiss)) {
+    const li = el('li', { class: s.match ? '' : 'miss' });
+    li.append(el('span', { class: 'when', text: range(s.start, s.end) }), el('span', { text: s.start && s.end ? dur(span(s.start, s.end)) : '' }),
+      el('span', { text: s.openings == null ? '' : `${s.openings} ${s.openings === 1 ? 'opening' : 'openings'}` }));
+    if (!s.match) {
+      const why = s.reason === 'Starts before your start date' ? `Starts before ${fmtS(filter.from)}` : s.reason === 'Ends after your deadline' ? `Ends after ${fmtS(filter.to)}` : s.reason;
+      li.append(el('span', { class: 'apply', text: why }));
+    } else if (s.closed) li.append(el('span', { class: 'apply warn', text: 'Applications closed' }));
+    else li.append(el('span', { class: 'apply', text: s.close ? `Apply by ${fmtS(s.close)}` : '' }));
+    ul.append(li);
+  }
+  box.append(ul);
+  return box;
+}
+
+function strip(p) {
+  const W = span(filter.from, filter.to) || 1, pad = Math.max(7, W * .2);
+  const d0 = t(filter.from) - pad * MS, Dm = (t(filter.to) + pad * MS) - d0, pct = ms => 100 * (ms - d0) / Dm;
+  const box = el('div', { class: 'strip', role: 'img', 'aria-label': `${p.matchCount} of ${p.totalSlots} slots fit inside your dates` });
+  const w = el('div', { class: 'band-w' });
+  w.style.left = pct(t(filter.from)) + '%'; w.style.width = pct(t(filter.to)) - pct(t(filter.from)) + '%';
+  box.append(w);
+  const ends = [];
+  p.slots.filter(s => s.start && s.end && (s.match || $('#showMiss').checked)).forEach(s => {
+    const a = t(s.start), b = t(s.end);
+    let r = ends.findIndex(e => e <= a); if (r < 0) { r = ends.length; ends.push(0); } ends[r] = b;
+    const L = Math.max(0, pct(a)), R = Math.min(100, pct(b));
+    const bar = el('div', { class: 'sb' + (s.match ? ' fit' : '') + (pct(a) < 0 ? ' cl' : '') + (pct(b) > 100 ? ' cr' : '') });
+    bar.style.left = L + '%'; bar.style.width = Math.max(.8, R - L) + '%'; bar.style.top = 5 + Math.min(r, 5) * 12 + 'px';
+    box.append(bar);
+  });
+  const rows = Math.max(1, Math.min(ends.length, 6));
+  box.style.height = 18 + rows * 12 + 10 + 'px';
+  for (const [d, cls] of [[filter.from, 'l'], [filter.to, 'r']]) { const k = el('span', { class: 'tick ' + cls, text: fmt(d) }); k.style.left = pct(t(d)) + '%'; box.append(k); }
+  return box;
+}
+</script>
+</body>
+</html>
