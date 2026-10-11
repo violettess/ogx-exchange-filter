@@ -8,10 +8,13 @@ laid out like aiesec.org's search. Local filters: slot length, SDG (Volunteer), 
     node server.js            # real data; open http://127.0.0.1:3000 and click "Connect to AIESEC"
 
 ## Connecting (no login needed)
-1. Open aiesec.org/search, press F12 > Network, reload.
-2. Click any `graphql` request > Request Headers > copy the `authorization` value.
-3. In the app click "Connect to AIESEC" and paste it. It is saved in your browser only and sent with each search.
-Optional: set `AIESEC_TOKEN` (in `.env` locally, or in Vercel's environment variables) so visitors never need to paste one.
+Click "Connect to AIESEC". Two ways:
+- Bookmark (easiest): drag the orange button to your bookmarks bar once. On aiesec.org/search click it, then click any filter or
+  sort option on the page. A blue box appears; click "Open Slot Finder". (The public token is not stored on the page, so the
+  bookmark waits for the page's next request to AIESEC and copies the authorization header from it.)
+- Paste: F12 > Network > any `graphql` request > copy the `authorization` request header, paste it into the box.
+The token is saved in your browser only and sent with each search. Optional: set `AIESEC_TOKEN` (in `.env` locally, or in
+Vercel's environment variables) so visitors never need to connect.
 
 ## Deploy to Vercel
 Project layout: `public/` (the page) + `api/` (two serverless functions) + `lib/core.js`. `server.js` is only for local use.
